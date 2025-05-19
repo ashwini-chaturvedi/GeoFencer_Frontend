@@ -1,42 +1,45 @@
+// loginUser.js
 import { loginStart, loginFailure, loginSuccess } from "../Features/Slices/authSlice";
 
 export const loginUser = (email, password) => async (dispatch) => {
     try {
-        dispatch(loginStart())
+        dispatch(loginStart());
 
         const credentials = {
             emailId: email,
             password: password
-        }
+        };
         
         const backendURL = import.meta.env.VITE_BACKEND_URL;
-        console.log("Credentials:",credentials)
         
-        const response = await fetch(`${backendURL}/admin/login`, {
+        const response = await fetch(`${backendURL}/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body:JSON.stringify(credentials),
+            body: JSON.stringify(credentials),
             mode: "cors"
         });
 
-        console.log("JWT:",response)
+        console.log("Response:", response);
 
         if (response.ok) {
-            const token = await response.text(); // ✅ parse the body
+            const userData = await response.json();
 
-            console.log("JWT Token:", token);
-
-            dispatch(loginSuccess({ email, token }));
-            return { success: true, email, token };
+            
+            // When dispatching loginSuccess, include all relevant user data
+            dispatch(loginSuccess({ 
+                userData:userData
+            }));
+            
+            return { success: true, userData };
         } else {
             const errorData = await response.json();
             dispatch(loginFailure(errorData.message || "Login failed"));
-            return { success: false };
+            return { success: false, error: errorData.message };
         }
     } catch (error) {
         dispatch(loginFailure("Network error: " + error.message));
-        return { success: false };
+        return { success: false, error: error.message };
     }
-}
+};

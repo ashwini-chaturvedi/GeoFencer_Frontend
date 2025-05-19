@@ -34,7 +34,7 @@ export default function Registration() {
         { name: "fullName", label: "Full Name", type: "text", icon: "user" },
         { name: "userName", label: "Username", type: "text", icon: "at" },
         { name: "phoneNo", label: "Phone Number", type: "tel", icon: "phone" },
-        { name: "password",label:showPassword ? "Password(Visible)" : "Password", type: showPassword ? "text" : "password", icon: "lock", isPassword: true }
+        { name: "password", label: showPassword ? "Password(Visible)" : "Password", type: showPassword ? "text" : "password", icon: "lock", isPassword: true }
     ];
 
     const [error, setError] = useState("");//Maintaining the State of Error
@@ -59,6 +59,7 @@ export default function Registration() {
         setIsLoading(true);//When the registration form is submitted the state of loading becomes true...
 
         try {
+
             //Fetch API to send the data of the form to Backend
             const response = await fetch(`${backendUrl}/admin`, {
                 method: "POST",//HTTP method POST
@@ -79,7 +80,7 @@ export default function Registration() {
                     setError(errorData.message || "Registration failed");
                 } else {
                     const errorText = await response.text();
-                    setError(errorText || `Error: ${response.status} ${response.statusText}`);
+                    setError(errorText || `User with Similar Email Id already exists`);
                 }
             }
         } catch (error) {
@@ -114,7 +115,7 @@ export default function Registration() {
     const githubLogin = () => {
         window.location.href = `https://localhost:8443/oauth2/authorization/github`;
     }
-    
+
     return (
         <motion.section
             initial={{ opacity: 0 }}
@@ -236,7 +237,7 @@ export default function Registration() {
                         </motion.button>
                         <motion.button
                             type="button"
-                            whileHover={{ scale: 1.08}}
+                            whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 bg-gradient-to-r from-blue-200 to-yellow-200 hover:from-yellow-200 hover:to-blue-200 dark:border-gray-600 dark:hover:bg-gray-700 transition-all duration-200"
                             onClick={githubLogin}
@@ -248,8 +249,8 @@ export default function Registration() {
 
                     <motion.p variants={itemVariants} className="text-sm text-gray-500 dark:text-gray-300 text-center mt-6">
                         Already have an account?{" "}
-                        <span 
-                            className="font-medium hover:text-lg text-blue-600 hover:text-blue-800 dark:text-blue-400 hover:underline transition-colors duration-200 cursor-pointer" 
+                        <span
+                            className="font-medium hover:text-lg text-blue-600 hover:text-blue-800 dark:text-blue-400 hover:underline transition-colors duration-200 cursor-pointer"
                             onClick={() => navigate('/login')}
                         >
                             Sign in

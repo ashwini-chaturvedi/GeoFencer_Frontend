@@ -17,10 +17,10 @@ export default function AddDevice() {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;//Backend URL
     const navigate = useNavigate();//React-router for navigation
 
-    const { isAuthenticated } = useSelector((state) => state.auth);
+    const { isAuthenticated,user } = useSelector((state) => state.auth);
+    const jwtToken=useSelector((state)=>state.auth.token)
     const dispatch = useDispatch();
-    const email = useSelector((state) => state.auth.email);
-    const jwtToken = useSelector((state) => state.auth.token);
+
 
     //this will store the form data and then send it collectively to the backEND
     const [formData, setFormData] = useState({
@@ -155,17 +155,17 @@ export default function AddDevice() {
             //Generating Unique Id 
             const uniqueId = crypto.randomUUID();
             console.log("uniqueId:", uniqueId);
-            
+
             // Update form data with uniqueId
             setFormData((prev) => ({
                 ...prev,
                 "uniqueId": uniqueId
             }));
-            
-            // Dispatch action to update Redux store with uniqueId
-            dispatch(setUniqueId({uniqueId}));
 
-            const response = await fetch(`${backendUrl}/device/${email}`, {//POST request to the backend 
+            // Dispatch action to update Redux store with uniqueId
+            dispatch(setUniqueId({ uniqueId }));
+
+            const response = await fetch(`${backendUrl}/device/${user.emailId}`, {//POST request to the backend 
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -181,9 +181,9 @@ export default function AddDevice() {
             console.log("Response:", response);
 
             if (response.ok) {//if respose is correct navigate to the dashboard page
-                isAuthenticated ? navigate(`/dashboard`) : navigate("/");
+                isAuthenticated ? navigate(`/profile`) : navigate("/");
             } else {
-                setError(`Incorrect Email Id or User with "${email}" doesn't Exist`);
+                setError(`Incorrect Email Id or User with "${user.emailId}" doesn't Exist`);
             }
         } catch (error) {
             console.log(error);
@@ -232,7 +232,7 @@ export default function AddDevice() {
 
                     {/* Form */}
                     <form className="space-y-5" onSubmit={saveLocation}>
-                    <div className="space-y-2">
+                        <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                 <FaEnvelope className="inline mr-2 text-gray-500" />
                                 Email Address
@@ -241,9 +241,15 @@ export default function AddDevice() {
                                 whileFocus={{ scale: 1.02 }}
                                 type="email"
                                 name="email"
-                                placeholder={email}
-                                disabled
-                                className="w-full p-3 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-xl cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
+                                value={isAuthenticated ? user.emailId : ""}
+                                onChange={isAuthenticated ? null : handleChange}
+                                placeholder={isAuthenticated ? "" : "xyz123@gmail.com"}
+                                disabled={isAuthenticated}
+                                className={`w-full p-3 ${isAuthenticated
+                                    ? "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                    : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white"} 
+            border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200`}
+                                required={!isAuthenticated}
                             />
                         </div>
 

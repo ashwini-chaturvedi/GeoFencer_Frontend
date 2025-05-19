@@ -46,7 +46,7 @@ export default function Login() {
             
             // The thunk should return an object with success status
             if ( response.success) {
-                navigate(`/dashboard`);
+                navigate(`/profile`);
             }else{
                 console.log(response)
             }
@@ -161,10 +161,10 @@ export default function Login() {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => navigate('/dashboard')}
+                                        onClick={() => navigate('/profile')}
                                         className="w-full flex justify-center items-center text-gray-700 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium rounded-lg text-lg px-5 py-3 transition-all duration-200"
                                     >
-                                        Go to Dashboard
+                                        Go to Profile
                                     </motion.button>
                                 </div>
                             </motion.div>
@@ -278,7 +278,7 @@ export default function Login() {
                                     Remember me
                                 </label>
                             </div>
-                            <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 hover:underline transition-colors duration-200">
+                            <a onClick={()=>navigate("/forgotPassword")} className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:cursor-pointer dark:text-blue-400 hover:underline transition-colors duration-200">
                                 Forgot password?
                             </a>
                         </motion.div>

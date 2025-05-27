@@ -65,7 +65,6 @@ const authSlice = createSlice({
             // Clear localStorage
             localStorage.removeItem("userData");
             localStorage.removeItem("token");
-            localStorage.removeItem("uniqueId");
         },setUniqueId: (state, action) => {
             state.uniqueId = action.payload.uniqueId;
             localStorage.setItem("uniqueId", action.payload.uniqueId);

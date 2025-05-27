@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 import { loginUser } from "../../Thunks/authThunk";
 import { logout } from '../../Features/Slices/authSlice';
+import  ServerWake  from '../ServerWake/ServerWake'
 
 
 export default function Login() {
@@ -21,7 +22,9 @@ export default function Login() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-    
+    const [showServerBanner, setShowServerBanner] = useState(false);
+
+
     //Redux Hooks
     const dispatch = useDispatch()
     const { loading, error, isAuthenticated } = useSelector((state) => state.auth)
@@ -35,6 +38,7 @@ export default function Login() {
     //As it handles backend API it is using 'async-await'
     const loginAPI = async (e) => {
         e.preventDefault();
+        setShowServerBanner(true)
 
 
         const emailValue = e.target.email.value;//Extract the value of email from the form that is submitted.
@@ -43,16 +47,18 @@ export default function Login() {
         try {
             const response = await dispatch(loginUser(emailValue, password))//using Redux to get the authentication
 
-            
+
             // The thunk should return an object with success status
-            if ( response.success) {
+            if (response.success) {
                 navigate(`/profile`);
-            }else{
+            } else {
                 console.log(response)
             }
         } catch (error) {
-              // This is only for errors that might occur when dispatching the thunk itself
-              console.error("Error dispatching login thunk:", error);
+            // This is only for errors that might occur when dispatching the thunk itself
+            console.error("Error dispatching login thunk:", error);
+        } finally {
+            setShowServerBanner(false)
         }
     }
 
@@ -76,13 +82,13 @@ export default function Login() {
     // Modal animation variants
     const modalVariants = {
         hidden: { opacity: 0, scale: 0.8 },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             scale: 1,
             transition: { type: "spring", stiffness: 300, damping: 30 }
         },
-        exit: { 
-            opacity: 0, 
+        exit: {
+            opacity: 0,
             scale: 0.8,
             transition: { duration: 0.2 }
         }
@@ -93,41 +99,45 @@ export default function Login() {
         visible: { opacity: 1 },
         exit: { opacity: 0 }
     };
-   
-   // OAuth2 Methods using backend endpoints
-   const handleOAuthLogin = async (provider) => {
-    // Set loading state for the specific provider
-    setOauthLoading(prev => ({ ...prev, [provider]: true }));
-    
-    try {
-        // Instead of directly redirecting, we'll now fetch from our backend endpoint
-        // The backend will handle the redirect to the OAuth provider
-        
-        // We use window.location.assign instead of window.location.href for better control
-        window.location.assign(`${backendUrl}/admin/oauth2/${provider}`);
-        
-        // Note: We won't reach the code below until we return from the OAuth flow
-        
-    } catch (error) {
-        console.log("Error in Oauth2",error)
-        setOauthLoading(prev => ({ ...prev, [provider]: false }));
-    }
-};
+
+    // OAuth2 Methods using backend endpoints
+    const handleOAuthLogin = async (provider) => {
+        // Set loading state for the specific provider
+        setOauthLoading(prev => ({ ...prev, [provider]: true }));
+
+        try {
+            // Instead of directly redirecting, we'll now fetch from our backend endpoint
+            // The backend will handle the redirect to the OAuth provider
+
+            // We use window.location.assign instead of window.location.href for better control
+            window.location.assign(`${backendUrl}/admin/oauth2/${provider}`);
+
+            // Note: We won't reach the code below until we return from the OAuth flow
+
+        } catch (error) {
+            console.log("Error in Oauth2", error)
+            setOauthLoading(prev => ({ ...prev, [provider]: false }));
+        }
+    };
 
     return (
         <>
+            <ServerWake
+                isLoading={loading || showServerBanner}
+                onClose={() => setShowServerBanner(false)}
+            />
             {/* Logout Modal for authenticated users */}
             <AnimatePresence>
                 {isAuthenticated && (
                     <>
-                        <motion.div 
+                        <motion.div
                             initial="hidden"
                             animate="visible"
                             exit="exit"
                             variants={overlayVariants}
                             className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center"
                         >
-                            <motion.div 
+                            <motion.div
                                 variants={modalVariants}
                                 className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-96 max-w-md"
                             >
@@ -135,18 +145,18 @@ export default function Login() {
                                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                                         You&apos;re Already Logged In
                                     </h3>
-                                    <button 
+                                    <button
                                         onClick={() => navigate('/dashboard')}
                                         className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
                                     >
                                         <X size={24} />
                                     </button>
                                 </div>
-                                
+
                                 <p className="text-gray-600 dark:text-gray-300 mb-6">
                                     You are currently logged in. Would you like to log out of your account?
                                 </p>
-                                
+
                                 <div className="flex flex-col gap-3">
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
@@ -157,7 +167,7 @@ export default function Login() {
                                         <FaSignOutAlt className="mr-2" />
                                         Logout
                                     </motion.button>
-                                    
+
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -172,6 +182,8 @@ export default function Login() {
                     </>
                 )}
             </AnimatePresence>
+
+
 
 
 
@@ -278,7 +290,7 @@ export default function Login() {
                                     Remember me
                                 </label>
                             </div>
-                            <a onClick={()=>navigate("/forgotPassword")} className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:cursor-pointer dark:text-blue-400 hover:underline transition-colors duration-200">
+                            <a onClick={() => navigate("/forgotPassword")} className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:cursor-pointer dark:text-blue-400 hover:underline transition-colors duration-200">
                                 Forgot password?
                             </a>
                         </motion.div>
@@ -295,12 +307,12 @@ export default function Login() {
                                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>                            
+                                </svg>
                             ) : <>
-                            <h1 className="font-bold">
-                               Sign in
-                            </h1>
-                             <FaSignInAlt className="m-2" size={20} />
+                                <h1 className="font-bold">
+                                    Sign in
+                                </h1>
+                                <FaSignInAlt className="m-2" size={20} />
                             </>}
                         </motion.button>
 
@@ -319,16 +331,16 @@ export default function Login() {
                                 className="flex items-center bg-gradient-to-r from-blue-200 to-yellow-200 hover:from-yellow-200 hover:to-blue-200 justify-center w-full p-3 border border-gray-300 rounded-lg dark:border-gray-600 dark:hover:bg-gray-700 transition-all duration-200"
                             >
                                 <img className="h-8 mr-2" src={google} alt="Google" />
-                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200 " onClick={()=>handleOAuthLogin('google')} disabled={oauthLoading.google}>Google</span>
+                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200 " onClick={() => handleOAuthLogin('google')} disabled={oauthLoading.google}>Google</span>
                             </motion.button>
                             <motion.button
                                 type="button"
-                                whileHover={{ scale: 1.08}}
+                                whileHover={{ scale: 1.08 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="flex items-center bg-gradient-to-r from-blue-200 to-yellow-200 hover:from-yellow-200 hover:to-blue-200 justify-center w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 transition-all duration-200"
                             >
                                 <img className="h-8 mr-2" src={git} alt="GitHub" />
-                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200" onClick={()=>handleOAuthLogin('github')  } disabled={oauthLoading.github}>GitHub</span>
+                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200" onClick={() => handleOAuthLogin('github')} disabled={oauthLoading.github}>GitHub</span>
                             </motion.button>
                         </motion.div>
 

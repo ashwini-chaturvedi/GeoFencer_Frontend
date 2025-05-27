@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
-import { Home, Login, Register,ForgotPassword,Profile,EditProfile,ContactDeveloper, Device, AddDevice,EditDevice, GitHub, MapComponent } from './components/allComponents';
+import { Home, Login, Register,ForgotPassword,Profile,EditProfile,Feedback, Device, AddDevice,EditDevice, GitHub, MapComponent } from './components/allComponents';
 import Layout from './Layout';
 import { Provider } from 'react-redux';
 import store from './Store/store';
@@ -21,7 +21,7 @@ const router = createBrowserRouter(//This will Create a Router
       <Route path="register" element={<Register />} />
       <Route path="editProfile" element={<EditProfile />} />
       <Route path="profile" element={<Profile />} />
-      <Route path="contact" element={<ContactDeveloper />} />
+      <Route path="contact" element={<Feedback />} />
       <Route path="forgotPassword" element={<ForgotPassword />} />
 
       <Route path="addDevice" element={<AddDevice />} />

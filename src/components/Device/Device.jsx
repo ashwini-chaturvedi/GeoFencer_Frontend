@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { FaArrowLeft, FaSatelliteDish, FaMapMarkerAlt, FaExclamationTriangle, FaSignal, FaStop, FaSearch } from "react-icons/fa";
 import MapComponent from "../MapComponent/MapComponent";
@@ -44,6 +45,9 @@ export default function Device() {
   const locationIntervalRef = useRef(null);//reference of the location interval which is being refreshed after every 3 Seconds
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;//backend url
+
+  // Check if device is outside geofence
+  const isOutsideGeofence = geofenceRadius < locationData.distance;
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -271,6 +275,42 @@ export default function Device() {
         </div>
       </div>
 
+      {/* Geofence Warning Banner */}
+      {isOutsideGeofence && locationData.distance && (
+        <motion.div
+          className="mt-6 mb-4 p-4 bg-red-500 text-white rounded-lg shadow-lg flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.8, y: -20 }}
+          animate={{ 
+            opacity: 1, 
+            scale: [1, 1.05, 1],
+            y: 0
+          }}
+          transition={{ 
+            duration: 0.5,
+            scale: {
+              repeat: Infinity,
+              duration: 2,
+              ease: "easeInOut"
+            }
+          }}
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 1.5,
+              ease: "easeInOut"
+            }}
+          >
+            <FaExclamationTriangle className="mr-3 text-yellow-300" size={24} />
+          </motion.div>
+          <div className="flex flex-col">
+            <span className="font-bold text-lg">⚠️ GEOFENCE BREACH ALERT!</span>
+            <span className="text-sm">Device &quot;{deviceName}&quot; is outside the safe zone ({locationData.distance}m from home, limit: {geofenceRadius}m)</span>
+          </div>
+        </motion.div>
+      )}
+
       {/* Device Info Card */}
       <motion.div
         className="mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
@@ -383,12 +423,58 @@ export default function Device() {
 
                 <div className="mt-5 mx-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <motion.div className= {geofenceRadius<=locationData.distance?`bg-white w-52 md:w-80  dark:bg-gray-800 p-3 rounded-md shadow-lg border-green-500 border-2`:`bg-white w-52 md:w-80  dark:bg-gray-800 p-3 rounded-md shadow-lg border-red-500 border-2`}
+                    <motion.div 
+                      className={isOutsideGeofence 
+                        ? `bg-red-100 dark:bg-red-900 w-52 md:w-80 p-4 rounded-lg shadow-2xl border-red-500 border-4` 
+                        : `bg-green-100 dark:bg-green-900 w-52 md:w-80 p-4 rounded-lg shadow-lg border-green-500 border-2`
+                      }
+                      initial={{ scale: 1 }}
+                      animate={isOutsideGeofence ? {
+                        scale: [1, 1.1, 1],
+                        boxShadow: [
+                          "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                          "0 20px 25px -5px rgba(239, 68, 68, 0.4)",
+                          "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                        ]
+                      } : { scale: 1 }}
+                      transition={isOutsideGeofence ? {
+                        scale: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+                        boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                      } : {}}
                       whileHover={{ scale: 1.15 }}
                     >
-                      <p className="text-lg font-mono font-bold text-gray-800  dark:text-white">
-                        Distance:{locationData.distance}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Distance from Home</p>
+                          <p className={`text-2xl font-bold ${isOutsideGeofence ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                            {locationData.distance}m
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Limit: {geofenceRadius}m
+                          </p>
+                        </div>
+                        {isOutsideGeofence && (
+                          <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ repeat: Infinity, duration: 1 }}
+                          >
+                            <FaExclamationTriangle className="text-red-500" size={28} />
+                          </motion.div>
+                        )}
+                      </div>
+                      
+                      {isOutsideGeofence && (
+                        <motion.div 
+                          className="mt-2 text-center"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: [0.5, 1, 0.5] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                          <span className="text-red-600 dark:text-red-400 font-bold text-sm">
+                            🚨 OUTSIDE SAFE ZONE!
+                          </span>
+                        </motion.div>
+                      )}
                     </motion.div>
                   </div>
                 </div>

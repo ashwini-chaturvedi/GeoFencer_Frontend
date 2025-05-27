@@ -17,9 +17,11 @@ export default function AddDevice() {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;//Backend URL
     const navigate = useNavigate();//React-router for navigation
 
-    const { isAuthenticated,user } = useSelector((state) => state.auth);
-    const jwtToken=useSelector((state)=>state.auth.token)
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
+    const jwtToken = useSelector((state) => state.auth.token)
     const dispatch = useDispatch();
+    const [newEmailId, setNewEmailId] = useState("")
+    const emailId = isAuthenticated ? user.emailId : newEmailId
 
 
     //this will store the form data and then send it collectively to the backEND
@@ -164,8 +166,9 @@ export default function AddDevice() {
 
             // Dispatch action to update Redux store with uniqueId
             dispatch(setUniqueId({ uniqueId }));
+            
 
-            const response = await fetch(`${backendUrl}/device/${user.emailId}`, {//POST request to the backend 
+            const response = await fetch(`${backendUrl}/device/${emailId}`, {//POST request to the backend 
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -241,9 +244,9 @@ export default function AddDevice() {
                                 whileFocus={{ scale: 1.02 }}
                                 type="email"
                                 name="email"
-                                value={isAuthenticated ? user.emailId : ""}
-                                onChange={isAuthenticated ? null : handleChange}
-                                placeholder={isAuthenticated ? "" : "xyz123@gmail.com"}
+                                value={isAuthenticated ? user.emailId : newEmailId}
+                                onChange={isAuthenticated ? null : (e) => setNewEmailId(e.target.value)}
+                                placeholder={isAuthenticated ? user.emailId : "xyz123@gmail.com"}
                                 disabled={isAuthenticated}
                                 className={`w-full p-3 ${isAuthenticated
                                     ? "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"

@@ -6,6 +6,8 @@ import git from "../../icons/github.svg";
 import { AlertCircle } from "lucide-react";
 import { faAt, faPhone, faLock, faUser, faEnvelope, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ServerWake from "../ServerWake/ServerWake";
+import { useSelector } from "react-redux";
 
 export default function Registration() {
     //Structure of the Data that will be send to backend and the data from the form will be inserted here 
@@ -45,6 +47,10 @@ export default function Registration() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;//BACKEND URL
 
+    const {loading}=useSelector((state)=>state.auth)
+
+    const [showServerBanner, setShowServerBanner] = useState(false);
+
     //This Method will trigger whenever there is change in any input on registration form
     const handleChange = (e) => {
         //this will dynamically insert the data to the required field in the form data JSON
@@ -57,7 +63,7 @@ export default function Registration() {
         e.preventDefault();
         setError("");//No Error
         setIsLoading(true);//When the registration form is submitted the state of loading becomes true...
-
+        setShowServerBanner(true)
         try {
 
             //Fetch API to send the data of the form to Backend
@@ -87,6 +93,7 @@ export default function Registration() {
             setError(`Network error: ${error.message}`);
         } finally {
             setIsLoading(false);
+            setShowServerBanner(false)
         }
     };
 
@@ -117,6 +124,13 @@ export default function Registration() {
     }
 
     return (
+        <>
+        <ServerWake
+            isLoading={loading || showServerBanner} 
+            onClose={() => setShowServerBanner(false)} 
+        />       
+        
+        
         <motion.section
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -259,5 +273,6 @@ export default function Registration() {
                 </motion.form>
             </motion.div>
         </motion.section>
+        </>
     );
 }

@@ -3,7 +3,7 @@ import { Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 
-export default function ContactDeveloper() {
+export default function Feedback() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -103,7 +103,7 @@ export default function ContactDeveloper() {
       </button>
 
       <div className='w-full px-2 h-14 rounded-lg bg-gradient-to-r from-blue-200 to-yellow-300 hover:text-xl '>
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 mx-60 p-2">Feedback</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 md:mx-60 mx-20 p-2">Feedback</h2>
       </div>
 
 

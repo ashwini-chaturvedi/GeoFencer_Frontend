@@ -8,9 +8,9 @@ import Footer from './Footer/Footer.jsx'
 import GitHub from './Github/Github.jsx'
 import MapComponent from './MapComponent/MapComponent.jsx'
 import EditDevice from './Device/editDevice.jsx'
-import ContactDeveloper from './Contact/ContactDeveloper.jsx'
+import Feedback from './Feedback/Feedback.jsx'
 import Profile from './Profile/Profile.jsx'
 import EditProfile from './EditProfile/EditProfile.jsx'
 import ForgotPassword from './ForgotPassword/ForgotPassword.jsx'
 
-export {Header,ContactDeveloper,Home,Login,Register,ForgotPassword,Profile,EditProfile,Device,AddDevice,EditDevice,GitHub,MapComponent,Footer}
+export {Header,Feedback,Home,Login,Register,ForgotPassword,Profile,EditProfile,Device,AddDevice,EditDevice,GitHub,MapComponent,Footer}

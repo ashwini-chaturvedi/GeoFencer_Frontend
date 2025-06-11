@@ -3,27 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import google from "../../icons/google.svg";
 import git from "../../icons/github.svg";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, X, Shield } from "lucide-react";
 import { faLock, faEnvelope, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSelector, useDispatch } from "react-redux";
 import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 import { loginUser } from "../../Thunks/authThunk";
 import { logout } from '../../Features/Slices/authSlice';
-import  ServerWake  from '../ServerWake/ServerWake'
+import ServerWake from '../ServerWake/ServerWake'
 
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);//State is maintained to toggle the option to show Password
+    const [showOAuthModal, setShowOAuthModal] = useState(false); // State for OAuth security modal
 
     const navigate = useNavigate();//React router for navigating to another page
 
-    const [oauthLoading, setOauthLoading] = useState({ google: false, github: false }); // Track OAuth loading state
-
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     const [showServerBanner, setShowServerBanner] = useState(false);
 
+    // Default credentials - will be updated after OAuth modal is shown
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
 
     //Redux Hooks
     const dispatch = useDispatch()
@@ -34,19 +37,42 @@ export default function Login() {
         navigate('/');
     };
 
+    // Handle OAuth modal close - this is where we inject the dummy credentials
+    const handleDemo = () => { 
+        alert("Demo Login Credentials Added")      
+        // Inject dummy credentials after modal is closed
+        setFormData({
+            email: 'dummy123@gmail.com',
+            password: 'Dumb@123'
+        });
+    };
+
+    // Handle OAuth button clicks
+    const handleOAuthLogin = () => {
+        setShowOAuthModal(true);
+    };
+
+    // Handle OAuth modal close - this is where we inject the dummy credentials
+    const handleOAuthModalClose = () => {
+        setShowOAuthModal(false);
+        // Inject dummy credentials after modal is closed
+        setFormData({
+            email: 'dummy123@gmail.com',
+            password: 'Dumb@123'
+        });
+    };
+
     //When login form is submitted this method gets invoked which deals with the backend API
     //As it handles backend API it is using 'async-await'
     const loginAPI = async (e) => {
         e.preventDefault();
         setShowServerBanner(true)
 
-
-        const emailValue = e.target.email.value;//Extract the value of email from the form that is submitted.
-        const password = e.target.password.value;
+        const emailValue = formData.email;
+        const password = formData.password;
 
         try {
             const response = await dispatch(loginUser(emailValue, password))//using Redux to get the authentication
-
 
             // The thunk should return an object with success status
             if (response.success) {
@@ -61,6 +87,14 @@ export default function Login() {
             setShowServerBanner(false)
         }
     }
+
+    // Handle input changes
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
 
     // Animation variants
     const containerVariants = {//This is for container variation animation
@@ -100,25 +134,7 @@ export default function Login() {
         exit: { opacity: 0 }
     };
 
-    // OAuth2 Methods using backend endpoints
-    const handleOAuthLogin = async (provider) => {
-        // Set loading state for the specific provider
-        setOauthLoading(prev => ({ ...prev, [provider]: true }));
 
-        try {
-            // Instead of directly redirecting, we'll now fetch from our backend endpoint
-            // The backend will handle the redirect to the OAuth provider
-
-            // We use window.location.assign instead of window.location.href for better control
-            window.location.assign(`${backendUrl}/admin/oauth2/${provider}`);
-
-            // Note: We won't reach the code below until we return from the OAuth flow
-
-        } catch (error) {
-            console.log("Error in Oauth2", error)
-            setOauthLoading(prev => ({ ...prev, [provider]: false }));
-        }
-    };
 
     return (
         <>
@@ -126,6 +142,69 @@ export default function Login() {
                 isLoading={loading || showServerBanner}
                 onClose={() => setShowServerBanner(false)}
             />
+
+            {/* OAuth Security Modal */}
+            <AnimatePresence>
+                {showOAuthModal && (
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={overlayVariants}
+                        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                        onClick={handleOAuthModalClose}
+                    >
+                        <motion.div
+                            variants={modalVariants}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center">
+                                    <Shield className="text-orange-500 mr-2" size={24} />
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                        Security Notice
+                                    </h3>
+                                </div>
+                                <button
+                                    onClick={handleOAuthModalClose}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                                    <p className="text-orange-800 dark:text-orange-200 font-medium">
+                                        Due to Security Reasons, This Feature has been Locked
+                                    </p>
+                                </div>
+
+                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <p className="text-blue-800 dark:text-blue-200 font-medium mb-2">
+                                        For Trial Access, use these credentials:
+                                    </p>
+                                    <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                                        <p><strong>Email:</strong> dummy123@gmail.com</p>
+                                        <p><strong>Password:</strong> Dumb@123</p>
+                                    </div>
+                                </div>
+
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleOAuthModalClose}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2 transition-all duration-200"
+                                >
+                                    Got it, Thanks!
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Logout Modal for authenticated users */}
             <AnimatePresence>
                 {isAuthenticated && (
@@ -146,7 +225,7 @@ export default function Login() {
                                         You&apos;re Already Logged In
                                     </h3>
                                     <button
-                                        onClick={() => navigate('/dashboard')}
+                                        onClick={() => navigate('/')}
                                         className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
                                     >
                                         <X size={24} />
@@ -183,10 +262,6 @@ export default function Login() {
                 )}
             </AnimatePresence>
 
-
-
-
-
             <motion.section
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -213,6 +288,7 @@ export default function Login() {
                         >
                             Sign in to your account
                         </motion.p>
+
                     </div>
 
                     {error && (
@@ -225,6 +301,16 @@ export default function Login() {
                             <span>{error}</span>
                         </motion.div>
                     )}
+                   
+                    <p className="text-sm text-gray-500 dark:text-gray-300 text-center mt-1">
+                        Looking for trial access?{" "}
+                        <span
+                            className="font-medium text-green-600 hover:text-green-800 dark:text-green-400 hover:underline transition-colors duration-200 cursor-pointer hover:text-lg"
+                            onClick={() => handleDemo()}
+                        >
+                            Get Demo Credentials
+                        </span>
+                    </p>
 
                     <motion.form
                         variants={containerVariants}
@@ -247,7 +333,9 @@ export default function Login() {
                                     name="email"
                                     id="email"
                                     className="pl-10 w-full p-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200"
-                                    placeholder="xyz123@email.com"
+                                    placeholder="xyz123@gmail.com"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
                                     required
                                 />
                             </div>
@@ -266,8 +354,10 @@ export default function Login() {
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     id="password"
-                                    placeholder="********"
+                                    placeholder="Enter your password"
                                     className="pl-10 w-full p-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
                                     required />
                                 <button
                                     type="button"
@@ -329,18 +419,22 @@ export default function Login() {
                                 whileHover={{ scale: 1.08 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="flex items-center bg-gradient-to-r from-blue-200 to-yellow-200 hover:from-yellow-200 hover:to-blue-200 justify-center w-full p-3 border border-gray-300 rounded-lg dark:border-gray-600 dark:hover:bg-gray-700 transition-all duration-200"
+                                onClick={() => handleOAuthLogin()}
+
                             >
                                 <img className="h-8 mr-2" src={google} alt="Google" />
-                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200 " onClick={() => handleOAuthLogin('google')} disabled={oauthLoading.google}>Google</span>
+                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200">Google</span>
                             </motion.button>
                             <motion.button
                                 type="button"
                                 whileHover={{ scale: 1.08 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="flex items-center bg-gradient-to-r from-blue-200 to-yellow-200 hover:from-yellow-200 hover:to-blue-200 justify-center w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 transition-all duration-200"
+                                onClick={() => handleOAuthLogin()}
+
                             >
                                 <img className="h-8 mr-2" src={git} alt="GitHub" />
-                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200" onClick={() => handleOAuthLogin('github')} disabled={oauthLoading.github}>GitHub</span>
+                                <span className="text-lg font-bold text-gray-700 dark:text-gray-200">GitHub</span>
                             </motion.button>
                         </motion.div>
 

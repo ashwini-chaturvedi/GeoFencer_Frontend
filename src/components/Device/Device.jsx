@@ -14,9 +14,11 @@ export default function Device() {
   const { deviceId } = useParams();//props that was passed by the dashboard component spelling of the props should be same
 
   const [homeLocationData, setHomeLocationData] = useState({ latitude: "23.3222", longitude: "23.2333" });//for location 
-  const [locationData, setLocationData] = useState({ latitude: "", longitude: "",distance:"",dateTime:"" });//for location 
+  const [LastLocationData, setLastLocationData] = useState({ latitude: "23.3222", longitude: "23.2333" });//for location 
+  const [locationData, setLocationData] = useState({ latitude: "", longitude: "", distance: "", dateTime: "" });//for location 
 
   const [homePlace, setHomePlace] = useState("");//for location 
+  const [LastPlace, setLastPlace] = useState("");//for location 
   const [currPlace, setCurrPlace] = useState("");//for location 
   const [deviceName, setDeviceName] = useState("");
   const [geofenceRadius, setGeofenceRadius] = useState("");
@@ -69,7 +71,13 @@ export default function Device() {
             longitude: data.location.longitude,
           });
 
-        
+          // Set Last location data
+          setLastLocationData({
+            latitude: data.lastLocation.latitude,
+            longitude: data.lastLocation.longitude,
+          });
+
+
 
           setGeofenceRadius(data.geofenceRadius)
           setdeviceUniqueId(data.uniqueId)
@@ -216,50 +224,58 @@ export default function Device() {
     };
   }, [backendUrl, jwtToken]);
 
-  //Using google maps API to fetch the location from latitude and longitude
-  useEffect(() => {
-    const fetchPlaceName = async () => {
-      const lat = locationData.latitude
-      const lng = locationData.longitude
-
-      if (lat != "" && lng != "") {
-        try {
-          const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`);
-
-          const apiData = await response.json();
-
-          // Use the first formatted address if available
-          if (apiData.status === "OK" && apiData.results.length > 0) {
-
-            setCurrPlace(apiData.results[6].formatted_address)
-          }
-        } catch (error) {
-          console.error("Error fetching place name:", error);
-        }
-      }
-
-
-      let homeLat = String(homeLocationData.latitude)
-      let homeLng = String(homeLocationData.longitude)
-
+  const fetchAddress = async (lat, lng, setterCallback) => {
+    if (lat !== "" && lng !== "" && lat != null && lng != null) {
       try {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${homeLat},${homeLng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`);
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const apiData = await response.json();
 
         // Use the first formatted address if available
         if (apiData.status === "OK" && apiData.results.length > 0) {
-
-          setHomePlace(apiData.results[2].formatted_address)
+          setterCallback(apiData.results[0].formatted_address);
+        } else {
+          console.warn("No results found for coordinates:", lat, lng);
         }
       } catch (error) {
         console.error("Error fetching place name:", error);
       }
-
     }
+  };
 
-    fetchPlaceName()
-  }, [homeLocationData, locationData])
+  // Using google maps API to fetch the location from latitude and longitude
+  useEffect(() => {
+    const fetchPlaceName = async () => {
+      // Home location
+      const homeLat = String(homeLocationData.latitude);
+      const homeLng = String(homeLocationData.longitude);
+      if (homeLat && homeLng) {
+        fetchAddress(homeLat, homeLng, setHomePlace);
+      }
+
+      // Last location
+      const lastLat = String(LastLocationData.latitude);
+      const lastLng = String(LastLocationData.longitude);
+      if (lastLat && lastLng) {
+        fetchAddress(lastLat, lastLng, setLastPlace); // Fixed: should be setLastPlace
+      }
+
+      // Current location
+      const currLat = locationData.latitude;
+      const currLng = locationData.longitude;
+      if (currLat && currLng) {
+        fetchAddress(currLat, currLng, setCurrPlace);
+      }
+    };
+
+    fetchPlaceName();
+  }, [LastLocationData, homeLocationData, locationData]);
 
   return (
     <motion.div className="max-w-4xl mx-auto p-4 md:p-6 mt-20 md:mt-20 bg-gradient-to-b from-gray-50 to-gray-100:from-gray-800 dark:to-gray-900 rounded-xl shadow-xl" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
@@ -280,12 +296,12 @@ export default function Device() {
         <motion.div
           className="mt-6 mb-4 p-4 bg-red-500 text-white rounded-lg shadow-lg flex items-center justify-center"
           initial={{ opacity: 0, scale: 0.8, y: -20 }}
-          animate={{ 
-            opacity: 1, 
+          animate={{
+            opacity: 1,
             scale: [1, 1.05, 1],
             y: 0
           }}
-          transition={{ 
+          transition={{
             duration: 0.5,
             scale: {
               repeat: Infinity,
@@ -296,8 +312,8 @@ export default function Device() {
         >
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ 
-              repeat: Infinity, 
+            transition={{
+              repeat: Infinity,
               duration: 1.5,
               ease: "easeInOut"
             }}
@@ -394,6 +410,30 @@ export default function Device() {
                     </div>
 
 
+                    {/* Last Current Location Details div */}
+                    <div className="mt-5">
+                      <span className=" md:mx-24  text-lg font-bold text-gray-400">Last Location:</span>
+                      <div className="mx-2 text-xl font-bold">{LastPlace}</div>
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        <motion.div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-lg border-black border"
+                          whileHover={{ scale: 1.08 }}
+                        >
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Latitude</p>
+                          <p className="text-lg font-mono font-semibold text-gray-800 dark:text-white">
+                            {formatCoordinate(LastLocationData.latitude)}
+                          </p>
+                        </motion.div>
+
+                        <motion.div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-lg border-black border"
+                          whileHover={{ scale: 1.08 }}
+                        >
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Longitude</p>
+                          <p className="text-lg font-mono font-semibold text-gray-800 dark:text-white">
+                            {formatCoordinate(LastLocationData.longitude)}
+                          </p>
+                        </motion.div>
+                      </div>
+                    </div>
                     {/* Current Location Details div */}
                     <div className="mt-5">
                       <span className=" md:mx-24  text-lg font-bold text-gray-400">Current Location:</span>
@@ -423,9 +463,9 @@ export default function Device() {
 
                 <div className="mt-5 mx-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <motion.div 
-                      className={isOutsideGeofence 
-                        ? `bg-red-100 dark:bg-red-900 w-52 md:w-80 p-4 rounded-lg shadow-2xl border-red-500 border-4` 
+                    <motion.div
+                      className={isOutsideGeofence
+                        ? `bg-red-100 dark:bg-red-900 w-52 md:w-80 p-4 rounded-lg shadow-2xl border-red-500 border-4`
                         : `bg-green-100 dark:bg-green-900 w-52 md:w-80 p-4 rounded-lg shadow-lg border-green-500 border-2`
                       }
                       initial={{ scale: 1 }}
@@ -447,10 +487,10 @@ export default function Device() {
                         <div>
                           <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Distance from Home</p>
                           <p className={`text-2xl font-bold ${isOutsideGeofence ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                            {locationData.distance}m
+                            {locationData.distance} km
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Limit: {geofenceRadius}m
+                            Limit: {geofenceRadius} km
                           </p>
                         </div>
                         {isOutsideGeofence && (
@@ -462,9 +502,9 @@ export default function Device() {
                           </motion.div>
                         )}
                       </div>
-                      
+
                       {isOutsideGeofence && (
-                        <motion.div 
+                        <motion.div
                           className="mt-2 text-center"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: [0.5, 1, 0.5] }}
@@ -480,15 +520,15 @@ export default function Device() {
                 </div>
 
 
-                
+
                 {/* Tracking Button - Only shown if user owns the device */}
                 {checkForUniqueId() && (
                   <motion.button
                     className={`mt-6 w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center ${!connected
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : tracking
-                          ? "bg-gradient-to-r from-red-400 to-red-600 hover:from-red-600 hover:to-red-400 text-black"
-                          : "text-black bg-gradient-to-r from-blue-400 to-yellow-200 hover:from-yellow-200 hover:to-blue-400"
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : tracking
+                        ? "bg-gradient-to-r from-red-400 to-red-600 hover:from-red-600 hover:to-red-400 text-black"
+                        : "text-black bg-gradient-to-r from-blue-400 to-yellow-200 hover:from-yellow-200 hover:to-blue-400"
                       }`}
                     onClick={tracking ? stopLiveTracking : startLiveTracking}
                     whileHover={{ scale: connected ? 1.08 : 1 }}

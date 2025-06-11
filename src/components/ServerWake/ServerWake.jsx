@@ -87,7 +87,7 @@ export default function ServerWake({ isLoading, onClose }) {
                         damping: 30,
                         opacity: { duration: 0.2 }
                     }}
-                    className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md mx-4"
+                    className="fixed top-4  transform -translate-x-1/2 z-50 w-full max-w-md"
                 >
                     <div className={`${bannerContent.bgColor} border ${bannerContent.textColor} px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm`}>
                         <div className="flex items-start space-x-3">

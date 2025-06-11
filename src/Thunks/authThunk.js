@@ -21,8 +21,6 @@ export const loginUser = (email, password) => async (dispatch) => {
             mode: "cors"
         });
 
-        console.log("Response:", response);
-
         if (response.ok) {
             const userData = await response.json();
 
@@ -39,7 +37,7 @@ export const loginUser = (email, password) => async (dispatch) => {
             return { success: false, error: errorData.message };
         }
     } catch (error) {
-        dispatch(loginFailure("Network error: " + error.message));
+        dispatch(loginFailure("Either Email Id or Password is Incorrect"));
         return { success: false, error: error.message };
     }
 };

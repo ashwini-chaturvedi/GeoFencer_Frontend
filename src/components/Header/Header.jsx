@@ -249,7 +249,7 @@ const Header = () => {
                                             } shadow-md hover:shadow-lg transform hover:translate-y-px`}
                                     >
                                         <FaUserPlus size={20} className="mr-1" />
-                                        Sign up
+                                        Register
                                     </button>
 
 
@@ -377,7 +377,7 @@ const Header = () => {
                                             } transition-colors duration-200 rounded-lg font-medium shadow-md`}
                                     >
                                         <FaUserPlus size={20} className="mr-1" />
-                                        Sign up
+                                        Register
                                     </button>
                                 </>
                             )}

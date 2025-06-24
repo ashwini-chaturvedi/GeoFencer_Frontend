@@ -9,8 +9,8 @@ import GeofenceOverlay from "../GeoFence/GeoFenceOverlay";
 import RoadPathOverlay from "../RoadPath/RoadPathOverlay";
 import { useSelector } from "react-redux";
 
-const MapComponent = ({ coordinates, geofenceRadius }) => {
-  const [currLocation, setCurrLocation] = useState(coordinates);
+const MapComponent = ({ coordinates,lastLocation, geofenceRadius }) => {
+  const [currLocation, setCurrLocation] = useState(lastLocation);
   const [distanceValue, setDistanceValue] = useState("0.00");
   const client = useRef(null);
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -98,10 +98,7 @@ const MapComponent = ({ coordinates, geofenceRadius }) => {
             <RoadPathOverlay homeCoordinates={coordinates} deviceCoordinates={currLocation} />
 
             {/* Geofence */}
-            <GeofenceOverlay coordinates={coordinates} radiusInMeters={geofenceRadius} />
-
-            {/* Calculate distance */}
-            <p>{distanceValue}</p>
+            <GeofenceOverlay coordinates={coordinates} radiusInMeters={geofenceRadius*1000} />
           </Map>
         </div>
       </APIProvider>

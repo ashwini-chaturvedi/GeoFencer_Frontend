@@ -136,8 +136,10 @@ const Profile = () => {
 
   // Delete Device
   const deleteDevice = async (deviceId) => {
+
     setModal(!modal);
     try {
+
       const response = await fetch(`${backendUrl}/device/${deviceId}`, {
         method: "DELETE",
         headers: {
@@ -147,7 +149,9 @@ const Profile = () => {
       });
 
       if (response.ok) {
-        console.log("Device deleted successfully!");
+        alert("Device deleted successfully!");
+        localStorage.removeItem(`${userEmail}`)//when a device is deleted its unique id for the identification is also deleted from the local storage
+        
         // Update UI after deletion
         setDevices((prevDevices) => prevDevices.filter(device => device.deviceId !== deviceId));
 

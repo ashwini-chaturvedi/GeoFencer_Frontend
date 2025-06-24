@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from '../../Features/Slices/authSlice';
 import { toggleDarkMode } from '../../Features/Slices/themeSlice';
 import { FaHome } from "react-icons/fa";
-import { TbDeviceMobilePlus } from "react-icons/tb";
 import { FaGithubSquare } from "react-icons/fa";
 import { IoMdLogIn } from "react-icons/io";
 import { FaUserPlus } from "react-icons/fa";
@@ -67,11 +66,6 @@ const Header = () => {
             icon: <FaHome className="mr-1" size={20} />,
             label: 'Home',
             path: '/'
-        },
-        {
-            icon: <TbDeviceMobilePlus className="mr-1" size={20} />,
-            label: 'Add Device',
-            path: isAuthenticated ? '/addDevice' : '/addDevice'
         },
         {
             icon: <VscFeedback className="mr-1 " size={22} />,

@@ -17,7 +17,6 @@ export default function Footer() {
     // Navigation links for footer
     const footerLinks = [
         { name: 'Home', path: '/' },
-        { name: 'Add Device', path: '/addDevice' },
         {
             name: 'Feedback',
             path: '/contact'

@@ -2,10 +2,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
-import { Home, Login, Register,ForgotPassword,Profile,EditProfile,Feedback, Device, AddDevice,EditDevice, GitHub, MapComponent } from './components/allComponents';
+import { Home, Login, Register, ForgotPassword, Profile, EditProfile, Feedback, Device, AddDevice, EditDevice, GitHub, MapComponent } from './components/allComponents';
 import Layout from './Layout';
 import { Provider } from 'react-redux';
 import store from './Store/store';
+import ProtectedRoute from './ProtectedRoute';
 
 
 
@@ -17,18 +18,50 @@ const router = createBrowserRouter(//This will Create a Router
 
     <Route path="/" element={<Layout />}>{/*this means that '/' is linked with the Component <Layout/>*/}
       <Route path="/" element={<Home />} />{/*this means that '/' is linked with the Component <Home/> this ensures that our landing page is Home Page*/}
+
       <Route path="login" element={<Login />} />
+
       <Route path="register" element={<Register />} />
-      <Route path="editProfile" element={<EditProfile />} />
-      <Route path="profile" element={<Profile />} />
+
       <Route path="contact" element={<Feedback />} />
+
       <Route path="forgotPassword" element={<ForgotPassword />} />
 
-      <Route path="addDevice" element={<AddDevice />} />
-      <Route path="device/:deviceId" element={<Device />} />{/*Passing Two Props*/}
-      <Route path="editDevice/:deviceId" element={<EditDevice />} />{/*Passing Two Props*/}
       <Route path="github" element={<GitHub />} />
-      <Route path="map/:coordinates" element={<MapComponent />} />
+
+      <Route path="editProfile" element={
+        <ProtectedRoute>
+          <EditProfile />
+        </ProtectedRoute>} />
+
+      <Route path="profile" element={
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>} />
+
+
+
+      <Route path="addDevice" element={
+        <ProtectedRoute>
+          <AddDevice />
+        </ProtectedRoute>} />
+
+      <Route path="device/:deviceId" element={
+        <ProtectedRoute>
+          <Device />
+        </ProtectedRoute>} />
+
+      <Route path="editDevice/:deviceId" element={
+        <ProtectedRoute>
+          <EditDevice />
+        </ProtectedRoute>} />
+
+
+
+      <Route path="map/:coordinates/:lastLocation/:geofenceRadius" element={
+        <ProtectedRoute>
+          <MapComponent />
+        </ProtectedRoute>} />
     </Route>
   )
 );

@@ -3,9 +3,8 @@ import { motion } from "framer-motion";
 import DeviceDetector from "device-detector-js";
 import { useNavigate } from "react-router-dom";
 import { FaMapMarkerAlt, FaArrowLeft, FaMobileAlt, FaEnvelope, FaCheck, FaExclamation } from "react-icons/fa";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { LuRadius } from "react-icons/lu";
-import { setUniqueId } from "../../Features/Slices/authSlice";// Import the new action (update path as needed)
 
 export default function AddDevice() {
     const [userLocation, setUserLocation] = useState(null);//Managing the State of the userLocation
@@ -19,9 +18,10 @@ export default function AddDevice() {
 
     const { isAuthenticated, user } = useSelector((state) => state.auth);
     const jwtToken = useSelector((state) => state.auth.token)
-    const dispatch = useDispatch();
     const [newEmailId, setNewEmailId] = useState("")
     const emailId = isAuthenticated ? user.emailId : newEmailId
+    const { token } = useSelector((state) => state.auth);
+    const [devices, setDevices] = useState([]);
 
 
     //this will store the form data and then send it collectively to the backEND
@@ -147,16 +147,64 @@ export default function AddDevice() {
         }));
     };
 
+    // Fetch user data and devices
+    useEffect(() => {
+        const fetchUserData = async () => {
+            setLoading(true);
+            try {
+                // Fetch devices
+                const response = await fetch(`${backendUrl}/device/${emailId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch devices");
+
+                const deviceData = await response.json();
+                setDevices(deviceData);
+
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (token && emailId) {
+            fetchUserData();
+        }
+    }, [backendUrl, token, emailId]);
+
+
+    async function hashSHA256(message) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
     //aysnc-await method to submit the form data to the backend
     async function saveLocation(e) {
         e.preventDefault();
         try {
             setLoading(true);
 
+            let uuid = localStorage.getItem(`${emailId}`);
+            let existingDevice = devices.filter(device => device.uniqueId === uuid)
+
+            if (existingDevice.length >0) {
+                alert(`⚠️Device is Already Registered with emailId: ${emailId} as: ${existingDevice[0].deviceName}!!\n\n Try Updating or Deleting Redirecting...`)
+                setError("Device Already Exist!!");
+                isAuthenticated ? navigate(`/profile`) : navigate("/");
+                return;
+            }
+
+
             //⚠️IMPORTANT
             //Generating Unique Id 
-            const uniqueId = crypto.randomUUID();
-            console.log("uniqueId:", uniqueId);
+            const uniqueId = await crypto.randomUUID()+hashSHA256(emailId);
+
 
             // Update form data with uniqueId
             setFormData((prev) => ({
@@ -164,9 +212,8 @@ export default function AddDevice() {
                 "uniqueId": uniqueId
             }));
 
-            // Dispatch action to update Redux store with uniqueId
-            dispatch(setUniqueId({ uniqueId }));
-            
+            //⚠️this will set the unique id into the storage in which key will be the emailid hash and the key will be the uniqueId will help in identification of the uniqueness of the device
+           localStorage.setItem(`${emailId}`,uniqueId)
 
             const response = await fetch(`${backendUrl}/device/${emailId}`, {//POST request to the backend 
                 method: "POST",
@@ -180,8 +227,6 @@ export default function AddDevice() {
                 }),
                 mode: "cors",
             });
-
-            console.log("Response:", response);
 
             if (response.ok) {//if respose is correct navigate to the dashboard page
                 isAuthenticated ? navigate(`/profile`) : navigate("/");

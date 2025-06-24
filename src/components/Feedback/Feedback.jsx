@@ -60,7 +60,7 @@ export default function Feedback() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${backendUrl}/admin/feedback`, {
+      const response = await fetch(`${backendUrl}/feedback/submit`, {
         method: "POST",//HTTP method POST
         headers: {
           "Content-Type": "application/json",
